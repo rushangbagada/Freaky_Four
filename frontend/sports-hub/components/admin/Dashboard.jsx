@@ -9,10 +9,13 @@ import GalleryManagement from './GalleryManagement';
 import NewsManagement from './NewsManagement';
 import LiveMatchManagement from './LiveMatchManagement';
 import PlayerManagement from './PlayerManagement';
+import QuizManagement from './QuizManagement';
+import TurfManagement from './TurfManagement';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedClubForPlayers, setSelectedClubForPlayers] = useState(null);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalClubs: 0,
@@ -22,6 +25,18 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardStats();
+    
+    // Listen for custom event to switch to player management
+    const handleSwitchToPlayerManagement = (event) => {
+      setActiveTab('players');
+    };
+    
+    window.addEventListener('switchToPlayerManagement', handleSwitchToPlayerManagement);
+    
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('switchToPlayerManagement', handleSwitchToPlayerManagement);
+    };
   }, []);
 
   const fetchDashboardStats = async () => {
@@ -138,6 +153,13 @@ export default function AdminDashboard() {
         >
           🏆 Club Management
         </button>
+
+        <button 
+          className={`nav-btn ${activeTab === 'turf' ? 'active' : ''}`}
+          onClick={() => setActiveTab('turf')}
+        >
+          🌱 Turf Management
+        </button>
         
         <button 
           className={`nav-btn ${activeTab === 'matches' ? 'active' : ''}`}
@@ -186,6 +208,15 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('gallery')}
           >
             🖼️ Gallery Management
+          </button>
+        )}
+        
+        {isAdmin && (
+          <button 
+            className={`nav-btn ${activeTab === 'quiz' ? 'active' : ''}`}
+            onClick={() => setActiveTab('quiz')}
+          >
+            ❓ Quiz Management
           </button>
         )}
       </nav>
@@ -312,13 +343,18 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'users' && isAdmin && <UserManagement />}
-        {activeTab === 'clubs' && <ClubManagement user={user} />}
+        {activeTab === 'clubs' && <ClubManagement user={user} onManagePlayersClick={(club) => {
+          setSelectedClubForPlayers(club);
+          setActiveTab('players');
+        }} />}
         {activeTab === 'matches' && <MatchManagement user={user} />}
-        {activeTab === 'players' && <PlayerManagement user={user} />}
+        {activeTab === 'players' && <PlayerManagement user={user} selectedClubProp={selectedClubForPlayers} />}
         {activeTab === 'live-matches' && isAdmin && <LiveMatchManagement user={user} />}
         {activeTab === 'news' && isAdmin && <NewsManagement user={user} />}
         {activeTab === 'analytics' && isAdmin && <Analytics />}
         {activeTab === 'gallery' && isAdmin && <GalleryManagement user={user} />}
+        {activeTab === 'quiz' && isAdmin && <QuizManagement user={user} />}
+        {activeTab === 'turf' && isAdmin && <TurfManagement />}
       </main>
     </div>
   );

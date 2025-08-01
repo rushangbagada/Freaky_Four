@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TurfCard from './payment/TurfCard';
+import useDatabaseChangeDetection from '../hooks/useDatabaseChangeDetection';
 import './css/turf.css';
 
 const Turf = () => {
@@ -9,6 +10,7 @@ const Turf = () => {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [priceRange, setPriceRange] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('');
+  const [error, setError] = useState(null);
 
   // Filter turfs based on search criteria
   const filteredTurfs = turfs.filter(turf => {
@@ -28,72 +30,32 @@ const Turf = () => {
     return matchesSearch && matchesLocation && matchesPrice && matchesAvailability;
   });
 
-  useEffect(() => {
-    // Simulate API call to fetch turf data
-    const fetchTurfs = async () => {
-      try {
-        // In a real app, this would be an API call
-        const mockTurfs = [
-          {
-            id: 1,
-            name: 'Green Valley Sports Complex',
-            location: 'North Campus',
-            price: 500,
-            imageUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=75',
-            availability: true
-          },
-          {
-            id: 2,
-            name: 'Champions Football Ground',
-            location: 'South Campus',
-            price: 600,
-            imageUrl: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=75',
-            availability: true
-          },
-          {
-            id: 3,
-            name: 'Elite Cricket Academy',
-            location: 'East Campus',
-            price: 700,
-            imageUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=75',
-            availability: false
-          },
-          {
-            id: 4,
-            name: 'University Sports Center',
-            location: 'West Campus',
-            price: 450,
-            imageUrl: 'https://images.unsplash.com/photo-1552667466-07770ae110d0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=75',
-            availability: true
-          },
-          {
-            id: 5,
-            name: 'Olympic Training Ground',
-            location: 'Central Campus',
-            price: 800,
-            imageUrl: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=75',
-            availability: true
-          },
-          {
-            id: 6,
-            name: 'Riverside Sports Hub',
-            location: 'North Campus',
-            price: 550,
-            imageUrl: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=75',
-            availability: true
-          }
-        ];
-
-        // Remove artificial delay for faster loading
-        setTurfs(mockTurfs);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching turfs:', error);
-        setLoading(false);
+  // Fetch turf data from backend API
+  const fetchTurfs = async () => {
+    try {
+      console.log('🔄 Fetching turfs data...');
+      const response = await fetch("http://localhost:5000/api/turfs");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      const data = await response.json();
+      console.log('✅ Turfs data fetched successfully:', data.length, 'turfs');
+      setTurfs(data);
+      setError(null);
+      if (loading) setLoading(false);
+    } catch (err) {
+      console.error('❌ Error fetching turfs:', err);
+      setError(err.message);
+      if (loading) setLoading(false);
+    }
+  };
 
-    fetchTurfs();
+  // Use the live data update hook for real-time updates
+  useDatabaseChangeDetection(fetchTurfs, []);
+
+  useEffect(() => {
+    // Initial load will be handled by the hook
+    setLoading(true);
   }, []);
 
   if (loading) {
@@ -102,6 +64,24 @@ const Turf = () => {
         <div className="loading">
           <div className="spinner"></div>
           <p>Loading turfs...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="turf-page">
+        <div className="error-section">
+          <h2>⚠️ Error Loading Turfs</h2>
+          <p>{error}</p>
+          <button onClick={() => {
+            setError(null);
+            setLoading(true);
+            fetchTurfs();
+          }} className="retry-btn">
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -158,11 +138,16 @@ const Turf = () => {
         </div>
       </section>
 
+      {/* Results Summary */}
+      <div className="results-summary">
+        <h2>Available Turfs ({filteredTurfs.length})</h2>
+      </div>
+
       <div className="turf-grid">
         {filteredTurfs.map(turf => (
           <TurfCard
-            key={turf.id}
-            id={turf.id}
+            key={turf.id || turf._id}
+            id={turf.id || turf._id}
             name={turf.name}
             location={turf.location}
             price={turf.price}

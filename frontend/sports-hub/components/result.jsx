@@ -114,7 +114,7 @@ export default function Result() {
     <div className="main-section">
       {/* <!-- Main Section --> */}
       <div className="main-content">
-        <div className="stats-cards">
+        {/* <div className="stats-cards">
           <div className="card green">
             <p>Win Rate</p>
             <p className="value">{(dataState.reduce((total, item) => total + (item.team1_score > item.team2_score ? 1 : 0), 0) / dataState.length * 100).toFixed(2)}%</p>
@@ -127,9 +127,9 @@ export default function Result() {
             <p>Total Goals</p>
             <p className="value">{dataState.reduce((total, item) => total + item.team1_score , 0)}</p>
           </div>
-        </div>
+        </div> */}
 
-        {dataState.map((item, index) => (
+        {dataState.slice(0, 7).map((item, index) => (
               <div className="match-list" key={index}>
                 <div className="match-card">
                   <div className="match-info">
@@ -161,6 +161,22 @@ export default function Result() {
                 </div>
               </div>
             ))}
+            
+            {/* Show indicator if there are more matches */}
+            {dataState.length > 7 && (
+              <div className="more-matches-indicator">
+                <div className="indicator-card">
+                  <div className="indicator-content">
+                    <span className="matches-count">
+                      Showing 7 of {dataState.length} matches
+                    </span>
+                    <p className="indicator-text">
+                      🔍 Use filters above to refine your search and see specific matches
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
 

@@ -60,6 +60,14 @@ const {
   getAllLiveMatches
 } = require('../controllers/liveMatchController');
 
+const {
+  createQuizQuestion,
+  updateQuizQuestion,
+  deleteQuizQuestion,
+  getAllQuizQuestions,
+  getQuizQuestion
+} = require('../controllers/adminQuizController');
+
 // Then add this route after the dashboard route
 // Dashboard
 router.get('/dashboard', requireAdmin, getDashboardStats);
@@ -138,6 +146,8 @@ router.get('/users', requireAdmin, listUsers);
 router.post('/users', requireAdmin, createUser);
 // Full user update (admin only)
 router.put('/users/:id', requireAdmin, require('./../controllers/adminController').updateUser);
+// Delete user (admin only)
+router.delete('/users/:id', requireAdmin, require('./../controllers/adminController').deleteUser);
 
 // Player Management Routes (admin)
 router.post('/clubs/add-player', requireAdmin, addPlayerToClub);
@@ -148,5 +158,12 @@ router.get('/clubs/:clubId/players', requireAdmin, listClubPlayers);
 router.post('/my-club/add-player', requireClubLeader('club'), addPlayerToClub);
 router.post('/my-club/remove-player', requireClubLeader('club'), removePlayerFromClub);
 router.get('/my-club/players', requireClubLeader('club'), listClubPlayers);
+
+// Quiz Management Routes (admin only)
+router.post('/quiz', requireAdmin, createQuizQuestion);
+router.get('/quiz', requireAdmin, getAllQuizQuestions);
+router.get('/quiz/:id', requireAdmin, getQuizQuestion);
+router.put('/quiz/:id', requireAdmin, updateQuizQuestion);
+router.delete('/quiz/:id', requireAdmin, deleteQuizQuestion);
 
 module.exports = router;

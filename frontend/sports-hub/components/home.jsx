@@ -103,6 +103,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import useDatabaseChangeDetection from '../hooks/useDatabaseChangeDetection';
 import './css/home.css';
 
 const slides = [
@@ -181,17 +182,28 @@ export default function Home() {
     return () => clearInterval(slideInterval);
   }, [nextSlide]);
 
-  useEffect(() => {
-    fetch('/api/recent_matches')
-      .then(res => res.json())
-      .then(data => setRecentMatches(data))
-      .catch(err => console.error(err));
+  // Functions for real-time data fetching
+  const fetchHomeData = async () => {
+    try {
+      // Fetch recent matches
+      const recentRes = await fetch('/api/recent_matches');
+      const recentData = await recentRes.json();
+      setRecentMatches(recentData);
 
-    fetch('/api/clubs')
-      .then(res => res.json())
-      .then(data => setClubs(data))
-      .catch(err => console.error(err));
-  }, []);
+      // Fetch clubs
+      const clubsRes = await fetch('/api/clubs');
+      const clubsData = await clubsRes.json();
+      setClubs(clubsData);
+    } catch (err) {
+      console.error("Error fetching home data:", err);
+    }
+  };
+
+  // Use the custom hook for real-time updates
+  const { isPolling, hasChanges, lastUpdated } = useDatabaseChangeDetection(
+    fetchHomeData,
+    []
+  );
 
   return (
     <div className="home-container">
@@ -274,6 +286,7 @@ export default function Home() {
         </div>
       </section>
 
+
       {/* Popular Sports Clubs */}
       <section className="sports-section">
         <div className="section-header">
@@ -302,7 +315,7 @@ export default function Home() {
           <p>Celebrate our latest victories</p>
         </div>
         <div className="cards">
-          {recentMatches.map((item, index) => (
+          {recentMatches.slice(0, 7).map((item, index) => (
             <div className="result-card" key={index}>
               <div className="star">★</div>
               <h3>{item.category}</h3>
