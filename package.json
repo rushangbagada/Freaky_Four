@@ -6,7 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "frontend": "cd frontend/sports-hub && npm run dev",
     "backend": "cd server && npm run dev",
-    "dev": "concurrently -n \"frontend,backend\" -c \"bgRed,bgGreen\" \"npm run frontend\" \"npm run backend\""
+    "dev": "concurrently -n \"frontend,backend\" -c \"bgRed,bgGreen\" \"npm run frontend\" \"npm run backend\"",
+    "build": "cd server && npm install",
+    "start": "cd server && npm start"
   },
   "repository": {
     "type": "git",

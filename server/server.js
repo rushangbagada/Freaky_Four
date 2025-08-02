@@ -39,8 +39,19 @@ const Club_player = require('./models/club-player');
 const Turf = require('./models/turf');
 
 // Configure CORS to allow requests from the frontend
+const allowedOrigins = [
+  'http://localhost:5173', 
+  'http://localhost:5174', 
+  'http://localhost:3000', 
+  'http://localhost:5000',
+  // Add your Vercel domain when you deploy
+  // 'https://your-app-name.vercel.app',
+  // You can also use environment variables
+  process.env.FRONTEND_URL
+].filter(Boolean); // Remove undefined values
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000', 'http://localhost:5000'],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
