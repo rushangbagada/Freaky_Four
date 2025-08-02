@@ -1,6 +1,6 @@
 
 import React from 'react';
-import NewsFeed from '../components/NewsFeed';
+import NewsFeed from './newsfeed';
 import './css/blog.css';
 
 const Blog = () => {
